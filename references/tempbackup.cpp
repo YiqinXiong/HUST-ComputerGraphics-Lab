@@ -1,9 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 //  Sphere.cpp
-//  1. ÇòÌåµÄ»æÖÆ£¨Çó³öÇòÃæÉÏËùÓĞµÄµã£©
-//  2. Èı½ÇÃæÆ¬µÄ¹¹Ôì
-//  3. ÀûÓÃÍ³Ò»±äÁ¿½øĞĞÊı¾İ´«µİ
+//  1. çƒä½“çš„ç»˜åˆ¶ï¼ˆæ±‚å‡ºçƒé¢ä¸Šæ‰€æœ‰çš„ç‚¹ï¼‰
+//  2. ä¸‰è§’é¢ç‰‡çš„æ„é€ 
+//  3. åˆ©ç”¨ç»Ÿä¸€å˜é‡è¿›è¡Œæ•°æ®ä¼ é€’
 //////////////////////////////////////////////////////////////////////////////
 
 #include <glad/glad.h>
@@ -11,60 +11,44 @@
 #include <iostream>
 #include <vmath.h>
 #include <vector>
-#include <Windows.h>
 
-//ÈÕÆÚ
-static GLfloat day = 200.0;
-
-//´°¿Ú³ß´ç²ÎÊı
+//çª—å£å°ºå¯¸å‚æ•°
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+float aspact = (float)4.0 / (float)3.0;
 
-//ÊÓ½Ç²ÎÊı
-/*
-* perspective(Fovy, Aspact, ZNear, ZFar)£ºÊÓ½Ç¸Ä±ä
-* FovyÊÇÑÛ¾¦ÉÏÏÂÕö¿ªµÄ·ù¶È£¬½Ç¶ÈÖµ£¬ÖµÔ½Ğ¡£¬ÊÓÒ°·¶Î§Ô½ÏÁĞ¡£¨ÃĞÑÛ£©£¬ÖµÔ½´ó£¬ÊÓÒ°·¶Î§Ô½¿íÀ«£¨Õö¿ªÍ­Áå°ãµÄ´óÑÛ£©£»
-* Aspact±íÊ¾²Ã¼ôÃæµÄ¿íw¸ßh±È£¬Õâ¸öÓ°Ïìµ½ÊÓÒ°µÄ½ØÃæÓĞ¶à´ó£¨ÕâÀïÉèÖÃ³ÉºÍÏÔÊ¾ÇøÓòµÄ¿í¸ß±ÈÒ»ÖÂ¼´¿É£¬±ÈÈç800*600£¬ÔòÉèÖÃ³É4/3£©£»
-* ZNear±íÊ¾½ü²Ã¼ôÃæµ½ÑÛ¾¦µÄ¾àÀë£¬ZFar±íÊ¾Ô¶²Ã¼ôÃæµ½ÑÛ¾¦µÄ¾àÀë¡£×¢ÒâzNearºÍzFar²»ÄÜÉèÖÃÉèÖÃÎª¸ºÖµ£¨ÄãÔõÃ´¿´µ½ÑÛ¾¦ºóÃæµÄ¶«Î÷£©¡£
-*/
-const float fovy = 80;
-float aspact = (float)SCR_WIDTH / (float)SCR_HEIGHT;
-const float znear = 1;
-const float zfar = 800;
-
-//Ôö¼ÓĞı×ª²ÎÊı
+//å¢åŠ æ—‹è½¬å‚æ•°
 static GLfloat xRot = 20.0f;
 static GLfloat yRot = 20.0f;
 
-//¾ä±ú²ÎÊı
-GLuint vertex_array_object; // == VAO¾ä±ú
-GLuint vertex_buffer_object; // == VBO¾ä±ú
-GLuint element_buffer_object;//==EBO¾ä±ú
-int shader_program;//×ÅÉ«Æ÷³ÌĞò¾ä±ú
+//å¥æŸ„å‚æ•°
+GLuint vertex_array_object; // == VAOå¥æŸ„
+GLuint vertex_buffer_object; // == VBOå¥æŸ„
+GLuint element_buffer_object;//==EBOå¥æŸ„
+int shader_program;//ç€è‰²å™¨ç¨‹åºå¥æŸ„
 
-//ÇòÃæ¶¥µãÊı¾İ
+//çƒé¢é¡¶ç‚¹æ•°æ®
 std::vector<float> sphereVertices;
 std::vector<int> sphereIndices;
 const int Y_SEGMENTS = 10;
 const int X_SEGMENTS = 10;
 const float Radio = 2.0;
 const GLfloat  PI = 3.14159265358979323846f;
-GLfloat radius = 1.0;
 
 
 void initial(void)
 {
-	//½øĞĞÇòÌå¶¥µãºÍÈı½ÇÃæÆ¬µÄ¼ÆËã
-	// Éú³ÉÇòµÄ¶¥µã
+	//è¿›è¡Œçƒä½“é¡¶ç‚¹å’Œä¸‰è§’é¢ç‰‡çš„è®¡ç®—
+	// ç”Ÿæˆçƒçš„é¡¶ç‚¹
 	for (int y = 0; y <= Y_SEGMENTS; y++)
 	{
 		for (int x = 0; x <= X_SEGMENTS; x++)
 		{
 			float xSegment = (float)x / (float)X_SEGMENTS;
 			float ySegment = (float)y / (float)Y_SEGMENTS;
-			float xPos = radius * std::cos(xSegment * Radio * PI) * std::sin(ySegment * PI);
-			float yPos = radius * std::cos(ySegment * PI);
-			float zPos = radius * std::sin(xSegment * Radio * PI) * std::sin(ySegment * PI);
+			float xPos = std::cos(xSegment * Radio * PI) * std::sin(ySegment * PI);
+			float yPos = std::cos(ySegment * PI);
+			float zPos = std::sin(xSegment * Radio * PI) * std::sin(ySegment * PI);
 
 			sphereVertices.push_back(xPos);
 			sphereVertices.push_back(yPos);
@@ -72,7 +56,7 @@ void initial(void)
 		}
 	}
 
-	// Éú³ÉÇòµÄ¶¥µãË÷Òı
+	// ç”Ÿæˆçƒçš„é¡¶ç‚¹ç´¢å¼•
 	for (int i = 0; i < Y_SEGMENTS; i++)
 	{
 		for (int j = 0; j < X_SEGMENTS; j++)
@@ -88,33 +72,33 @@ void initial(void)
 		}
 	}
 
-	// Çò
+	// çƒ
 	glGenVertexArrays(1, &vertex_array_object);
 	glGenBuffers(1, &vertex_buffer_object);
-	//Éú³É²¢°ó¶¨ÇòÌåµÄVAOºÍVBO
+	//ç”Ÿæˆå¹¶ç»‘å®šçƒä½“çš„VAOå’ŒVBO
 	glBindVertexArray(vertex_array_object);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object);
-	// ½«¶¥µãÊı¾İ°ó¶¨ÖÁµ±Ç°Ä¬ÈÏµÄ»º³åÖĞ
+	// å°†é¡¶ç‚¹æ•°æ®ç»‘å®šè‡³å½“å‰é»˜è®¤çš„ç¼“å†²ä¸­
 	glBufferData(GL_ARRAY_BUFFER, sphereVertices.size() * sizeof(float), &sphereVertices[0], GL_STATIC_DRAW);
 
 	glGenBuffers(1, &element_buffer_object);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_object);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sphereIndices.size() * sizeof(int), &sphereIndices[0], GL_STATIC_DRAW);
 
-	// ÉèÖÃ¶¥µãÊôĞÔÖ¸Õë
+	// è®¾ç½®é¡¶ç‚¹å±æ€§æŒ‡é’ˆ
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	// ½â°óVAOºÍVBO
+	// è§£ç»‘VAOå’ŒVBO
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	// ¶¥µã×ÅÉ«Æ÷ºÍÆ¬¶Î×ÅÉ«Æ÷Ô´Âë
+	// é¡¶ç‚¹ç€è‰²å™¨å’Œç‰‡æ®µç€è‰²å™¨æºç 
 	const char* vertex_shader_source =
 		"#version 330 core\n"
-		"layout (location = 0) in vec3 vPos;\n"           // Î»ÖÃ±äÁ¿µÄÊôĞÔÎ»ÖÃÖµÎª0
-		"out vec4 vColor;\n"           // Î»ÖÃ±äÁ¿µÄÊôĞÔÎ»ÖÃÖµÎª0
+		"layout (location = 0) in vec3 vPos;\n"           // ä½ç½®å˜é‡çš„å±æ€§ä½ç½®å€¼ä¸º0
+		"out vec4 vColor;\n"           // ä½ç½®å˜é‡çš„å±æ€§ä½ç½®å€¼ä¸º0
 		"uniform mat4 transform;\n"
 		"uniform vec4 color;\n"
 		"void main()\n"
@@ -124,66 +108,63 @@ void initial(void)
 		"}\n\0";
 	const char* fragment_shader_source =
 		"#version 330 core\n"
-		"in vec4 vColor;\n"                   // ÊäÈëµÄÑÕÉ«ÏòÁ¿
-		"out vec4 FragColor;\n"           // Êä³öµÄÑÕÉ«ÏòÁ¿
+		"in vec4 vColor;\n"                   // è¾“å…¥çš„é¢œè‰²å‘é‡
+		"out vec4 FragColor;\n"           // è¾“å‡ºçš„é¢œè‰²å‘é‡
 		"void main()\n"
 		"{\n"
 		"    FragColor = vColor;\n"
 		"}\n\0";
 
-	// Éú³É²¢±àÒë×ÅÉ«Æ÷
-	// ¶¥µã×ÅÉ«Æ÷
+	// ç”Ÿæˆå¹¶ç¼–è¯‘ç€è‰²å™¨
+	// é¡¶ç‚¹ç€è‰²å™¨
 	int success;
 	char info_log[512];
 	int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
 	glCompileShader(vertex_shader);
-	// ¼ì²é×ÅÉ«Æ÷ÊÇ·ñ³É¹¦±àÒë£¬Èç¹û±àÒëÊ§°Ü£¬´òÓ¡´íÎóĞÅÏ¢
+	// æ£€æŸ¥ç€è‰²å™¨æ˜¯å¦æˆåŠŸç¼–è¯‘ï¼Œå¦‚æœç¼–è¯‘å¤±è´¥ï¼Œæ‰“å°é”™è¯¯ä¿¡æ¯
 	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
 		glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
 		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << info_log << std::endl;
 	}
-	// Æ¬¶Î×ÅÉ«Æ÷
+	// ç‰‡æ®µç€è‰²å™¨
 	int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
 	glCompileShader(fragment_shader);
-	// ¼ì²é×ÅÉ«Æ÷ÊÇ·ñ³É¹¦±àÒë£¬Èç¹û±àÒëÊ§°Ü£¬´òÓ¡´íÎóĞÅÏ¢
+	// æ£€æŸ¥ç€è‰²å™¨æ˜¯å¦æˆåŠŸç¼–è¯‘ï¼Œå¦‚æœç¼–è¯‘å¤±è´¥ï¼Œæ‰“å°é”™è¯¯ä¿¡æ¯
 	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
 		glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
 		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << info_log << std::endl;
 	}
-	// Á´½Ó¶¥µãºÍÆ¬¶Î×ÅÉ«Æ÷ÖÁÒ»¸ö×ÅÉ«Æ÷³ÌĞò
+	// é“¾æ¥é¡¶ç‚¹å’Œç‰‡æ®µç€è‰²å™¨è‡³ä¸€ä¸ªç€è‰²å™¨ç¨‹åº
 	shader_program = glCreateProgram();
 	glAttachShader(shader_program, vertex_shader);
 	glAttachShader(shader_program, fragment_shader);
 	glLinkProgram(shader_program);
-	// ¼ì²é×ÅÉ«Æ÷ÊÇ·ñ³É¹¦Á´½Ó£¬Èç¹ûÁ´½ÓÊ§°Ü£¬´òÓ¡´íÎóĞÅÏ¢
+	// æ£€æŸ¥ç€è‰²å™¨æ˜¯å¦æˆåŠŸé“¾æ¥ï¼Œå¦‚æœé“¾æ¥å¤±è´¥ï¼Œæ‰“å°é”™è¯¯ä¿¡æ¯
 	glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
 	if (!success) {
 		glGetProgramInfoLog(shader_program, 512, NULL, info_log);
 		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << info_log << std::endl;
 	}
 
-	// É¾³ı×ÅÉ«Æ÷
+	// åˆ é™¤ç€è‰²å™¨
 	glDeleteShader(vertex_shader);
 	glDeleteShader(fragment_shader);
 
 	glUseProgram(shader_program);
 
-	//Éè¶¨µãÏßÃæµÄÊôĞÔ
-	glPointSize(3);//ÉèÖÃµãµÄ´óĞ¡
-	glLineWidth(1);//ÉèÖÃÏß¿í
+	//è®¾å®šç‚¹çº¿é¢çš„å±æ€§
+	glPointSize(3);//è®¾ç½®ç‚¹çš„å¤§å°
+	glLineWidth(1);//è®¾ç½®çº¿å®½
 
-	glEnable(GL_CULL_FACE);//ÆôÓÃÌŞ³ı
-	glCullFace(GL_BACK);//ÌŞ³ı¶à±ßĞÎ±³Ãæ
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//Ö¸¶¨¶à±ßĞÎÄ£Ê½ÎªÏßÌõ
-
-	//ÆôÓÃÉî¶È²âÊÔ
-	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);//å¯ç”¨å‰”é™¤
+	glCullFace(GL_BACK);//å‰”é™¤å¤šè¾¹å½¢èƒŒé¢
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//æŒ‡å®šå¤šè¾¹å½¢æ¨¡å¼ä¸ºçº¿æ¡
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -212,11 +193,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		break;
 	case GLFW_KEY_3:
-		glEnable(GL_CULL_FACE);    //´ò¿ª±³ÃæÌŞ³ı
-		glCullFace(GL_BACK);          //ÌŞ³ı¶à±ßĞÎµÄ±³Ãæ
+		glEnable(GL_CULL_FACE);    //æ‰“å¼€èƒŒé¢å‰”é™¤
+		glCullFace(GL_BACK);          //å‰”é™¤å¤šè¾¹å½¢çš„èƒŒé¢
 		break;
 	case GLFW_KEY_4:
-		glDisable(GL_CULL_FACE);     //¹Ø±Õ±³ÃæÌŞ³ı
+		glDisable(GL_CULL_FACE);     //å…³é—­èƒŒé¢å‰”é™¤
 		break;
 	default:
 		break;
@@ -225,60 +206,31 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void Draw(void)
 {
-	// Çå¿ÕÑÕÉ«»º³å
+	// æ¸…ç©ºé¢œè‰²ç¼“å†²
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 
+	//å¤„ç†å›¾å½¢çš„æ—‹è½¬
+	//perspective(Fovy, Aspact, ZNear, ZFar)ï¼šè§†è§’æ”¹å˜
+	// Fovyæ˜¯çœ¼ç›ä¸Šä¸‹çå¼€çš„å¹…åº¦ï¼Œè§’åº¦å€¼ï¼Œå€¼è¶Šå°ï¼Œè§†é‡èŒƒå›´è¶Šç‹­å°ï¼ˆçœ¯çœ¼ï¼‰ï¼Œå€¼è¶Šå¤§ï¼Œè§†é‡èŒƒå›´è¶Šå®½é˜”ï¼ˆçå¼€é“œé“ƒèˆ¬çš„å¤§çœ¼ï¼‰ï¼›
+	// Aspactè¡¨ç¤ºè£å‰ªé¢çš„å®½wé«˜hæ¯”ï¼Œè¿™ä¸ªå½±å“åˆ°è§†é‡çš„æˆªé¢æœ‰å¤šå¤§ï¼ˆè¿™é‡Œè®¾ç½®æˆå’Œæ˜¾ç¤ºåŒºåŸŸçš„å®½é«˜æ¯”ä¸€è‡´å³å¯ï¼Œæ¯”å¦‚800*600ï¼Œåˆ™è®¾ç½®æˆ4/3ï¼‰ï¼›
+	// ZNearè¡¨ç¤ºè¿‘è£å‰ªé¢åˆ°çœ¼ç›çš„è·ç¦»ï¼ŒZFarè¡¨ç¤ºè¿œè£å‰ªé¢åˆ°çœ¼ç›çš„è·ç¦»ã€‚æ³¨æ„zNearå’ŒzFarä¸èƒ½è®¾ç½®è®¾ç½®ä¸ºè´Ÿå€¼ï¼ˆä½ æ€ä¹ˆçœ‹åˆ°çœ¼ç›åé¢çš„ä¸œè¥¿ï¼‰ã€‚
+
+	//translate(x, y, z)ï¼šå›¾å½¢å¹³ç§»ï¼ˆç›¸å¯¹äºæ˜¾ç¤ºåŒºåŸŸè€Œè¨€ï¼‰
+	// æ­¤å¤„xï¼Œy=0è¡¨ç¤ºåœ¨å±å¹•ä¸­é—´ï¼Œz=-5è¡¨ç¤ºå›¾å½¢åœ¨å±å¹•é‡Œé¢ï¼ˆç¦»æ‘„åƒæœºï¼‰5ä¸ªå•ä½è·ç¦»
+	vmath::mat4 trans = vmath::perspective(40, aspact, 1.0f, 800.0f) * vmath::translate(0.0f, 0.0f, -5.0f) * vmath::rotate(xRot, vmath::vec3(1.0, 0.0, 0.0)) * vmath::rotate(yRot, vmath::vec3(0.0, 1.0, 0.0));
 	unsigned int transformLoc = glGetUniformLocation(shader_program, "transform");
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans);
+
+	//å¤„ç†å›¾å½¢çš„é¢œè‰²
+	GLfloat vColor[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 	unsigned int colorLoc = glGetUniformLocation(shader_program, "color");
+	glUniform4fv(colorLoc, 1, vColor);
 
-	// ´¦ÀíÍ¼ĞÎµÄÑÕÉ«
-	GLfloat vColor[3][4] = {
-		{ 1.0f, 0.0f, 0.0f, 1.0f },
-		{ 0.0f, 0.0f, 1.0f, 1.0f },
-		{ 0.0f, 1.0f, 0.0f, 1.0f } };
-
-	// °ó¶¨VAO
-	glBindVertexArray(vertex_array_object);
-
-	/*
-	* 
-	translate(x, y, z)£ºÍ¼ĞÎÆ½ÒÆ£¨Ïà¶ÔÓÚÏÔÊ¾ÇøÓò¶øÑÔ£©
-	´Ë´¦x£¬y=0±íÊ¾ÔÚÆÁÄ»ÖĞ¼ä£¬z=-5±íÊ¾Í¼ĞÎÔÚÆÁÄ»ÀïÃæ£¨ÀëÉãÏñ»ú£©5¸öµ¥Î»¾àÀë
-	*/
-	
-	// ´´½¨±ä»»¾ØÕó²¢³õÊ¼»¯
-	vmath::mat4 trans1, trans2, trans3;
-	trans1 = trans2 = trans3 = vmath::perspective(fovy, aspact, znear, zfar);
-
-	// »­Ì«Ñô
-	trans1 *= vmath::translate(0.0f, 0.0f, -10.0f);
-	trans1 *= vmath::rotate(xRot, vmath::vec3(1.0, 0.0, 0.0));
-	trans1 *= vmath::rotate(yRot, vmath::vec3(0.0, 1.0, 0.0));
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans1);
-	glUniform4fv(colorLoc, 1, vColor[0]);
-	glDrawElements(GL_TRIANGLES, X_SEGMENTS * Y_SEGMENTS * 6, GL_UNSIGNED_INT, 0);                                          // »æÖÆÈı½ÇĞÎ
-	
-	// »­µØÇò
-	trans2 *= vmath::translate(0.0f, 0.0f, -10.0f);				// 5.Æ½ÒÆµ½ÖĞĞÄµã
-	trans2 *= vmath::rotate(day, vmath::vec3(0.0, 1.0, 0.0));	// 4.ÉèÖÃĞı×ªÖá·½Ïò
-	trans2 *= vmath::translate(4.0f, 0.0f, 0.0f);				// 3.ÉèÖÃĞı×ª°ë¾¶
-	trans2 *= vmath::rotate(yRot, vmath::vec3(0.0, 1.0, 0.0));	// 2.×Ô×ª
-	trans2 *= vmath::scale(0.5f);								// 1.Ëõ·Å
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans2);
-	glUniform4fv(colorLoc, 1, vColor[1]);
-	glDrawElements(GL_TRIANGLES, X_SEGMENTS * Y_SEGMENTS * 6, GL_UNSIGNED_INT, 0);
-
-	// »­ÔÂÇò
-	trans2 *= vmath::rotate((GLfloat)(day / 30.0 * 360.0 - day / 360.0 * 360.0), vmath::vec3(0.0, 1.0, 0.0));	// 4.ÉèÖÃĞı×ªÖá·½Ïò
-	trans2 *= vmath::translate(2.0f, 0.0f, 0.0f);				// 3.ÉèÖÃĞı×ª°ë¾¶
-	trans2 *= vmath::scale(0.5f);								// 1.Ëõ·Å
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans2);
-	glUniform4fv(colorLoc, 1, vColor[2]);
-	glDrawElements(GL_TRIANGLES, X_SEGMENTS * Y_SEGMENTS * 6, GL_UNSIGNED_INT, 0);
-
-	// ½â³ı°ó¶¨
-	glBindVertexArray(0);
+	// ç»˜åˆ¶ä¸‰è§’å½¢
+	glBindVertexArray(vertex_array_object);                                    // ç»‘å®šVAO
+	glDrawElements(GL_TRIANGLES, X_SEGMENTS * Y_SEGMENTS * 6, GL_UNSIGNED_INT, 0);                                          // ç»˜åˆ¶ä¸‰è§’å½¢
+	glBindVertexArray(0);                                                      // è§£é™¤ç»‘å®š
 
 }
 
@@ -293,22 +245,22 @@ void reshaper(GLFWwindow* window, int width, int height)
 	{
 		aspact = (float)width / (float)height;
 	}
-	
+
 }
 
 int main()
 {
-	glfwInit(); // ³õÊ¼»¯GLFW
+	glfwInit(); // åˆå§‹åŒ–GLFW
 
-	// OpenGL°æ±¾Îª3.3£¬Ö÷´Î°æ±¾ºÅ¾ùÉèÎª3
+	// OpenGLç‰ˆæœ¬ä¸º3.3ï¼Œä¸»æ¬¡ç‰ˆæœ¬å·å‡è®¾ä¸º3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 
-	// Ê¹ÓÃºËĞÄÄ£Ê½(ÎŞĞèÏòºó¼æÈİĞÔ)
+	// ä½¿ç”¨æ ¸å¿ƒæ¨¡å¼(æ— éœ€å‘åå…¼å®¹æ€§)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	// ´´½¨´°¿Ú(¿í¡¢¸ß¡¢´°¿ÚÃû³Æ)
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LTH I Love You!!!!", NULL, NULL);
+	// åˆ›å»ºçª—å£(å®½ã€é«˜ã€çª—å£åç§°)
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Sphere", NULL, NULL);
 
 	if (window == NULL)
 	{
@@ -317,10 +269,10 @@ int main()
 		return -1;
 	}
 
-	// ½«´°¿ÚµÄÉÏÏÂÎÄÉèÖÃÎªµ±Ç°Ïß³ÌµÄÖ÷ÉÏÏÂÎÄ
+	// å°†çª—å£çš„ä¸Šä¸‹æ–‡è®¾ç½®ä¸ºå½“å‰çº¿ç¨‹çš„ä¸»ä¸Šä¸‹æ–‡
 	glfwMakeContextCurrent(window);
 
-	// ³õÊ¼»¯GLAD£¬¼ÓÔØOpenGLº¯ÊıÖ¸ÕëµØÖ·µÄº¯Êı
+	// åˆå§‹åŒ–GLADï¼ŒåŠ è½½OpenGLå‡½æ•°æŒ‡é’ˆåœ°å€çš„å‡½æ•°
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
@@ -329,29 +281,25 @@ int main()
 
 	initial();
 
-	//´°¿Ú´óĞ¡¸Ä±äÊ±µ÷ÓÃreshaperº¯Êı
+	//çª—å£å¤§å°æ”¹å˜æ—¶è°ƒç”¨reshaperå‡½æ•°
 	glfwSetFramebufferSizeCallback(window, reshaper);
 
-	//´°¿ÚÖĞÓĞ¼üÅÌ²Ù×÷Ê±µ÷ÓÃkey_callbackº¯Êı
+	//çª—å£ä¸­æœ‰é”®ç›˜æ“ä½œæ—¶è°ƒç”¨key_callbackå‡½æ•°
 	glfwSetKeyCallback(window, key_callback);
 
-	std::cout << "·½Ïò¼ü¿ÉÒÔ¿ØÖÆÍ¼ĞÎµÄĞı×ª¡£" << std::endl;
-	std::cout << "Êı×Ö¼ü1£¬2ÉèÖÃ¶à±ßĞÎÄ£Ê½ÎªÏßÄ£Ê½ºÍÌî³äÄ£Ê½¡£" << std::endl;
-	std::cout << "Êı×Ö¼ü3´ò¿ªÌŞ³ıÄ£Ê½²¢ÇÒÌŞ³ı¶à±ßĞÎµÄ±³Ãæ¡£" << std::endl;
-	std::cout << "Êı×Ö¼ü4¹Ø±ÕÌŞ³ıÄ£Ê½¡£" << std::endl;
+	std::cout << "æ–¹å‘é”®å¯ä»¥æ§åˆ¶å›¾å½¢çš„æ—‹è½¬ã€‚" << std::endl;
+	std::cout << "æ•°å­—é”®1ï¼Œ2è®¾ç½®å¤šè¾¹å½¢æ¨¡å¼ä¸ºçº¿æ¨¡å¼å’Œå¡«å……æ¨¡å¼ã€‚" << std::endl;
+	std::cout << "æ•°å­—é”®3æ‰“å¼€å‰”é™¤æ¨¡å¼å¹¶ä¸”å‰”é™¤å¤šè¾¹å½¢çš„èƒŒé¢ã€‚" << std::endl;
+	std::cout << "æ•°å­—é”®4å…³é—­å‰”é™¤æ¨¡å¼ã€‚" << std::endl;
 
 	while (!glfwWindowShouldClose(window))
 	{
-		day++;
-		if (day >= 360)
-			day = 0;
 		Draw();
-		Sleep(30);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	// ½â°óºÍÉ¾³ıVAOºÍVBO
+	// è§£ç»‘å’Œåˆ é™¤VAOå’ŒVBO
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDeleteVertexArrays(1, &vertex_array_object);

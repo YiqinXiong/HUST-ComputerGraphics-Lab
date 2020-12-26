@@ -17,8 +17,8 @@
 static GLfloat day = 0.0;
 
 //窗口尺寸参数
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1440;
+const unsigned int SCR_HEIGHT = 480;
 
 //视角参数
 /*
@@ -27,7 +27,7 @@ const unsigned int SCR_HEIGHT = 600;
 * Aspact表示裁剪面的宽w高h比，这个影响到视野的截面有多大（这里设置成和显示区域的宽高比一致即可，比如800*600，则设置成4/3）；
 * ZNear表示近裁剪面到眼睛的距离，ZFar表示远裁剪面到眼睛的距离。注意zNear和zFar不能设置设置为负值（你怎么看到眼睛后面的东西）。
 */
-const float fovy = 80;
+const float fovy = 50;
 float aspact = (float)SCR_WIDTH / (float)SCR_HEIGHT;
 const float znear = 1;
 const float zfar = 800;
@@ -248,51 +248,45 @@ void Draw(void)
 	*/
 	
 	// 创建观察矩阵、投影矩阵
-	//vmath::mat4 view = vmath::lookat(vmath::vec3(0.0, 5.0, 0.0), vmath::vec3(0.0, 0.0, -10.0), vmath::vec3(0.0, 1.0, 0.0));
+	vmath::mat4 view = vmath::lookat(vmath::vec3(0.0, 3.0, 0.0), vmath::vec3(0.0, 0.0, -10.0), vmath::vec3(0.0, 1.0, 0.0));
 	vmath::mat4 projection = vmath::perspective(fovy, aspact, znear, zfar);
-	vmath::mat4 trans = projection;
+	vmath::mat4 trans = projection * view;
 
 	// 画太阳
-	
+	GLfloat angle_sun_self = day * (360.0f / 25.05f);	// 自转角
+
 	trans *= vmath::translate(0.0f, 0.0f, -10.0f);
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans);
+	vmath::mat4 trans_sun = trans * vmath::rotate(angle_sun_self, vmath::vec3(0.0f, 1.0f, 0.0f));	// 自转
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans_sun);
 	glUniform4fv(colorLoc, 1, vColor[0]);
 	glDrawElements(GL_TRIANGLES, X_SEGMENTS * Y_SEGMENTS * 6, GL_UNSIGNED_INT, 0);                                          // 绘制三角形
 	
 	// 画地球
-	float a_earth = 6.0f;
-	float b_earth = 2.0f;
-	GLfloat angle_earth = day;
+	float a_earth = 9.0f;
+	float b_earth = 3.0f;
+	GLfloat angle_earth = day * (360.0f / 365.00f);	// 公转角
 	float x_earth = a_earth * cosf(angle_earth * (float)PI / 180.0f);
 	float y_earth = b_earth * sinf(angle_earth * (float)PI / 180.0f);
 	float d_earth = sqrtf(x_earth * x_earth + y_earth * y_earth);
+	
+	GLfloat angle_earth_self = day * (360.0f / 1.00f);	// 自转角
 
-	trans *= vmath::rotate(angle_earth, vmath::vec3(0.0f, 0.0f, 1.0f));	// 4.设置旋转轴方向
-	
-	trans *= vmath::translate(d_earth, 0.0f, 0.0f);				// 3.设置旋转半径
-	
-	//trans *= vmath::rotate(43.0f * (float)PI / 180.0f, vmath::vec3(0.0f, 0.0f, 1.0f));
-	//trans *= vmath::rotate(yRot, vmath::vec3(0.0, 1.0, 0.0));	// 2.自转
-	trans *= vmath::scale(0.5f);								// 1.缩放
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans);
+	trans *= vmath::translate(-x_earth, 0.0f, y_earth);							// 3.公转椭圆轨道
+	vmath::mat4 trans_earth = trans * vmath::rotate(angle_earth_self, vmath::vec3(0.0f, 1.0f, 0.0f));	// 2.自转
+	trans_earth *= vmath::scale(0.6f);												// 1.缩放
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans_earth);
 	glUniform4fv(colorLoc, 1, vColor[1]);
 	glDrawElements(GL_TRIANGLES, X_SEGMENTS * Y_SEGMENTS * 6, GL_UNSIGNED_INT, 0);
 
 	// 画月球
-	float a_moon = 6.0f;
-	float b_moon = 2.0f;
-	//GLfloat angle_moon = day / 30.0 * 360.0 - day / 360.0 * 360.0;
-	GLfloat angle_moon = day *12;
-	//while (angle_moon > 360) angle_moon -= 360;
-	float x_moon = a_moon * cosf(angle_moon * (float)PI / 180.0f);
-	float y_moon = b_moon * sinf(angle_moon * (float)PI / 180.0f);
-	float d_moon = sqrtf(x_moon * x_moon + y_moon * y_moon);
+	GLfloat angle_moon = day * (360.0f / (365.00f / 12.00f));	// 公转角
+	GLfloat angle_moon_self = day * (360.0f / 27.32f);			// 自转角
 
-	//trans *= vmath::rotate(angle_moon, vmath::vec3(1.0f, 1.0f * tanf(23.0f * (float)PI / 180.0f), 0.0f));	// 4.设置旋转轴方向
-	trans *= vmath::rotate(angle_moon, vmath::vec3(0.0f, 1.0f, 0.0f));
-	trans *= vmath::translate(2.0f, 0.0f, 0.0f);				// 3.设置旋转半径
-	trans *= vmath::scale(0.5f);								// 1.缩放
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans);
+	trans *= vmath::rotate(angle_moon, vmath::vec3(sqrtf(2.0)/2.0f, sqrtf(2.0) / 2.0f, 0.0f));
+	trans *= vmath::translate(0.0f, 0.0f, 1.5f);				// 3.设置公转半径
+	vmath::mat4 trans_moon = trans * vmath::rotate(angle_moon_self, vmath::vec3(0.0f, 1.0f, 0.0f));	// 2.自转
+	trans_moon *= vmath::scale(0.6f * 0.5f);								// 1.缩放
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans_moon);
 	glUniform4fv(colorLoc, 1, vColor[2]);
 	glDrawElements(GL_TRIANGLES, X_SEGMENTS * Y_SEGMENTS * 6, GL_UNSIGNED_INT, 0);
 
@@ -362,7 +356,7 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 		day++;
-		if (day >= 360)
+		if (day >= 365)
 			day = 0;
 		Draw();
 		Sleep(30);

@@ -14,7 +14,7 @@
 #include <Windows.h>
 
 //日期
-static GLfloat day = 200.0;
+static GLfloat day = 0.0;
 
 //窗口尺寸参数
 const unsigned int SCR_WIDTH = 800;
@@ -247,33 +247,52 @@ void Draw(void)
 	此处x，y=0表示在屏幕中间，z=-5表示图形在屏幕里面（离摄像机）5个单位距离
 	*/
 	
-	// 创建变换矩阵并初始化
-	vmath::mat4 trans1, trans2, trans3;
-	trans1 = trans2 = trans3 = vmath::perspective(fovy, aspact, znear, zfar);
+	// 创建观察矩阵、投影矩阵
+	//vmath::mat4 view = vmath::lookat(vmath::vec3(0.0, 5.0, 0.0), vmath::vec3(0.0, 0.0, -10.0), vmath::vec3(0.0, 1.0, 0.0));
+	vmath::mat4 projection = vmath::perspective(fovy, aspact, znear, zfar);
+	vmath::mat4 trans = projection;
 
 	// 画太阳
-	trans1 *= vmath::translate(0.0f, 0.0f, -10.0f);
-	trans1 *= vmath::rotate(xRot, vmath::vec3(1.0, 0.0, 0.0));
-	trans1 *= vmath::rotate(yRot, vmath::vec3(0.0, 1.0, 0.0));
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans1);
+	
+	trans *= vmath::translate(0.0f, 0.0f, -10.0f);
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans);
 	glUniform4fv(colorLoc, 1, vColor[0]);
 	glDrawElements(GL_TRIANGLES, X_SEGMENTS * Y_SEGMENTS * 6, GL_UNSIGNED_INT, 0);                                          // 绘制三角形
 	
 	// 画地球
-	trans2 *= vmath::translate(0.0f, 0.0f, -10.0f);				// 5.平移到中心点
-	trans2 *= vmath::rotate(day, vmath::vec3(0.0, 1.0, 0.0));	// 4.设置旋转轴方向
-	trans2 *= vmath::translate(4.0f, 0.0f, 0.0f);				// 3.设置旋转半径
-	trans2 *= vmath::rotate(yRot, vmath::vec3(0.0, 1.0, 0.0));	// 2.自转
-	trans2 *= vmath::scale(0.5f);								// 1.缩放
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans2);
+	float a_earth = 6.0f;
+	float b_earth = 2.0f;
+	GLfloat angle_earth = day;
+	float x_earth = a_earth * cosf(angle_earth * (float)PI / 180.0f);
+	float y_earth = b_earth * sinf(angle_earth * (float)PI / 180.0f);
+	float d_earth = sqrtf(x_earth * x_earth + y_earth * y_earth);
+
+	trans *= vmath::rotate(angle_earth, vmath::vec3(0.0f, 0.0f, 1.0f));	// 4.设置旋转轴方向
+	
+	trans *= vmath::translate(d_earth, 0.0f, 0.0f);				// 3.设置旋转半径
+	
+	//trans *= vmath::rotate(43.0f * (float)PI / 180.0f, vmath::vec3(0.0f, 0.0f, 1.0f));
+	//trans *= vmath::rotate(yRot, vmath::vec3(0.0, 1.0, 0.0));	// 2.自转
+	trans *= vmath::scale(0.5f);								// 1.缩放
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans);
 	glUniform4fv(colorLoc, 1, vColor[1]);
 	glDrawElements(GL_TRIANGLES, X_SEGMENTS * Y_SEGMENTS * 6, GL_UNSIGNED_INT, 0);
 
 	// 画月球
-	trans2 *= vmath::rotate((GLfloat)(day / 30.0 * 360.0 - day / 360.0 * 360.0), vmath::vec3(0.0, 1.0, 0.0));	// 4.设置旋转轴方向
-	trans2 *= vmath::translate(2.0f, 0.0f, 0.0f);				// 3.设置旋转半径
-	trans2 *= vmath::scale(0.5f);								// 1.缩放
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans2);
+	float a_moon = 6.0f;
+	float b_moon = 2.0f;
+	//GLfloat angle_moon = day / 30.0 * 360.0 - day / 360.0 * 360.0;
+	GLfloat angle_moon = day *12;
+	//while (angle_moon > 360) angle_moon -= 360;
+	float x_moon = a_moon * cosf(angle_moon * (float)PI / 180.0f);
+	float y_moon = b_moon * sinf(angle_moon * (float)PI / 180.0f);
+	float d_moon = sqrtf(x_moon * x_moon + y_moon * y_moon);
+
+	//trans *= vmath::rotate(angle_moon, vmath::vec3(1.0f, 1.0f * tanf(23.0f * (float)PI / 180.0f), 0.0f));	// 4.设置旋转轴方向
+	trans *= vmath::rotate(angle_moon, vmath::vec3(0.0f, 1.0f, 0.0f));
+	trans *= vmath::translate(2.0f, 0.0f, 0.0f);				// 3.设置旋转半径
+	trans *= vmath::scale(0.5f);								// 1.缩放
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, trans);
 	glUniform4fv(colorLoc, 1, vColor[2]);
 	glDrawElements(GL_TRIANGLES, X_SEGMENTS * Y_SEGMENTS * 6, GL_UNSIGNED_INT, 0);
 

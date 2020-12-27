@@ -18,8 +18,8 @@
 static GLfloat day = 0.0;
 
 // 窗口尺寸参数
-const unsigned int SCR_WIDTH = 1440;
-const unsigned int SCR_HEIGHT = 480;
+const unsigned int SCR_WIDTH = 1800;
+const unsigned int SCR_HEIGHT = 900;
 
 // 投影矩阵参数
 const float fovy = 60;
@@ -41,7 +41,6 @@ const int Y_SEGMENTS = 50;
 const int X_SEGMENTS = 50;
 const float Radio = 2.0;
 const GLfloat  PI = 3.14159265358979323846f;
-GLfloat radius = 1.0;
 
 // 生成球的顶点和纹理顶点
 void generateBallVerticles(std::vector<float>& sphereVertices) {
@@ -51,9 +50,9 @@ void generateBallVerticles(std::vector<float>& sphereVertices) {
 		{
 			float xSegment = (float)x / (float)X_SEGMENTS;
 			float ySegment = (float)y / (float)Y_SEGMENTS;
-			float xPos = radius * std::cos(xSegment * Radio * PI) * std::sin(ySegment * PI);
-			float yPos = radius * std::cos(ySegment * PI);
-			float zPos = radius * std::sin(xSegment * Radio * PI) * std::sin(ySegment * PI);
+			float xPos = std::cos(xSegment * Radio * PI) * std::sin(ySegment * PI);
+			float yPos = std::cos(ySegment * PI);
+			float zPos = std::sin(xSegment * Radio * PI) * std::sin(ySegment * PI);
 			// 球的顶点
 			sphereVertices.push_back(xPos);
 			sphereVertices.push_back(yPos);
@@ -304,12 +303,11 @@ void Draw(void)
 	
 	// 画地球
 	{
-		float a_earth = 9.0f;
-		float b_earth = 3.0f;
+		float a_earth = 9.0f;	// 椭圆长轴
+		float b_earth = 3.0f;	// 椭圆短轴
 		GLfloat angle_earth = day * (360.0f / 365.00f);	// 公转角
 		float x_earth = a_earth * cosf(angle_earth * (float)PI / 180.0f);
 		float y_earth = b_earth * sinf(angle_earth * (float)PI / 180.0f);
-		float d_earth = sqrtf(x_earth * x_earth + y_earth * y_earth);
 
 		GLfloat angle_earth_self = day * (360.0f / 1.00f);	// 自转角
 
@@ -326,7 +324,7 @@ void Draw(void)
 		GLfloat angle_moon = day * (360.0f / (365.00f / 12.00f));	// 公转角
 		GLfloat angle_moon_self = day * (360.0f / 27.32f);			// 自转角
 
-		trans *= vmath::rotate(angle_moon, vmath::vec3(sqrtf(2.0) / 2.0f, sqrtf(2.0) / 2.0f, 0.0f));
+		trans *= vmath::rotate(angle_moon, vmath::vec3(sqrtf(2.0) / 2.0f, sqrtf(2.0) / 2.0f, 0.0f));	// 4.倾斜45度角公转
 		trans *= vmath::translate(0.0f, 0.0f, 1.5f);	// 3.设置公转半径
 		vmath::mat4 trans_moon = trans * vmath::rotate(angle_moon_self, vmath::vec3(0.0f, 1.0f, 0.0f));	// 2.自转
 		trans_moon *= vmath::scale(0.6f * 0.5f);	// 1.缩放
